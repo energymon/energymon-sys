@@ -6,33 +6,34 @@ pub type EnergyMonFinishFn = unsafe extern fn() -> i32;
 pub type EnergyMonGetSourceFn = unsafe extern fn(*mut c_char) -> *mut c_char;
 
 extern {
-    fn em_impl_get(ptr: *mut EnergyMonC) -> c_int;
-    fn em_init() -> i32;
-    fn em_read_total() -> c_double;
-    fn em_finish() -> i32;
-    fn em_get_source(buffer: *mut c_char) -> *mut c_char;
+    pub fn em_impl_get(ptr: *mut EnergyMon) -> c_int;
+    pub fn em_init() -> i32;
+    pub fn em_read_total() -> c_double;
+    pub fn em_finish() -> i32;
+    pub fn em_get_source(buffer: *mut c_char) -> *mut c_char;
 }
 
 #[repr(C)]
-pub struct EnergyMonC {
+pub struct EnergyMon {
     pub finit: EnergyMonInitFn,
     pub fread: EnergyMonReadTotalFn,
     pub ffinish: EnergyMonFinishFn,
     pub fsource: EnergyMonGetSourceFn,
 }
 
-impl Default for EnergyMonC {
-    fn default() -> EnergyMonC {
-        EnergyMonC {
+impl Default for EnergyMon {
+    fn default() -> EnergyMon {
+        EnergyMon {
             finit: em_init,
             fread: em_read_total,
             ffinish: em_finish,
             fsource: em_get_source,
         }
+
     }
 }
 
-pub struct EnergyMon {
+/*pub struct EnergyMon {
     pub em: EnergyMonC,
 }
 
@@ -48,3 +49,4 @@ impl EnergyMon {
         Ok(EnergyMon { em: em, })
     }
 }
+*/
