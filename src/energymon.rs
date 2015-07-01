@@ -1,5 +1,4 @@
 use libc::{c_int, c_double, c_char, c_void};
-use std::ffi::CStr;
 use std::mem;
 
 pub type EnergyMonInitFn = unsafe extern fn(em: *mut EnergyMon) -> c_int;
@@ -66,7 +65,8 @@ impl EnergyMon {
             if ret.is_null() {
                 return Err("Failed to get energymon source".to_string());
             }
-            Ok(String::from_utf8_lossy(CStr::from_ptr(ret).to_bytes()).into_owned())
+            let buf = mem::transmute::<&[c_char], &[u8]>(&buf);
+            Ok(String::from_utf8_lossy(buf).into_owned())
         }
     }
 }
