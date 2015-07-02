@@ -36,7 +36,7 @@ impl EnergyMon {
     pub fn new() -> Result<EnergyMon, &'static str> {
         unsafe {
             let mut em: EnergyMon = mem::uninitialized();
-            let result = em_impl_get(&mut em);
+            let result: i32 = em_impl_get(&mut em);
             if result != 0 {
                 return Err("Failed to create energymon");
             }
@@ -76,13 +76,14 @@ impl EnergyMon {
 
     /// Utility function to get a human-readable name of the `EnergyMon`'s source.
     pub fn source(&mut self) -> Result<String, &'static str> {
-        let mut buf = [0; 100];
+        const BUFSIZE: usize = 100;
+        let mut buf: [c_char; BUFSIZE] = [0; BUFSIZE];
         unsafe {
-            let ret = (self.fsource)(buf.as_mut_ptr());
+            let ret: *mut c_char = (self.fsource)(buf.as_mut_ptr());
             if ret.is_null() {
                 return Err("Failed to get energymon source");
             }
-            let buf = mem::transmute::<&[c_char], &[u8]>(&buf);
+            let buf: &[u8] = mem::transmute::<&[c_char], &[u8]>(&buf);
             Ok(String::from_utf8_lossy(buf).into_owned())
         }
     }
