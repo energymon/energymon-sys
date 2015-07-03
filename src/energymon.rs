@@ -2,13 +2,13 @@ use libc::{c_int, c_double, c_char, c_void};
 use std::mem;
 
 /// Typedef for initialization function.
-pub type EnergyMonInitFn = unsafe extern fn(em: *mut EnergyMon) -> c_int;
+pub type EnergyMonInitFn = extern fn(*mut EnergyMon) -> c_int;
 /// Typedef for read function.
-pub type EnergyMonReadTotalFn = unsafe extern fn(em: *mut EnergyMon) -> c_double;
+pub type EnergyMonReadTotalFn = extern fn(*mut EnergyMon) -> c_double;
 /// Typedef for cleanup function.
-pub type EnergyMonFinishFn = unsafe extern fn(em: *mut EnergyMon) -> c_int;
+pub type EnergyMonFinishFn = extern fn(*mut EnergyMon) -> c_int;
 /// Typedef for function to get human-readable name.
-pub type EnergyMonGetSourceFn = unsafe extern fn(*mut c_char) -> *mut c_char;
+pub type EnergyMonGetSourceFn = extern fn(*mut c_char) -> *mut c_char;
 
 #[repr(C)]
 /// Representation of native C struct `em_impl`.
@@ -46,9 +46,7 @@ impl EnergyMon {
 
     /// Initialize the `EnergyMon` - may allocate more resources and/or start threads.
     pub fn init(&mut self) -> Result<(), &'static str> {
-        let result: i32 = unsafe {
-            (self.finit)(self)
-        };
+        let result: i32 = (self.finit)(self);
         if result != 0 {
             return Err("Failed to initialize energymon");
         }
@@ -57,17 +55,12 @@ impl EnergyMon {
 
     /// Read the total energy from the `EnergyMon`.
     pub fn read(&mut self) -> f64 {
-        unsafe {
-            (self.fread)(self)
-        }
-        
+        (self.fread)(self)
     }
 
     /// Cleanup the `EnergyMon` - may deallocate associated resources and/or stop threads.
     pub fn finish(&mut self) -> Result<(), &'static str> {
-        let result: i32 = unsafe {
-            (self.ffinish)(self)
-        };
+        let result: i32 = (self.ffinish)(self);
         if result != 0 {
             return Err("Failed to cleanup energymon");
         }
@@ -78,14 +71,14 @@ impl EnergyMon {
     pub fn source(&mut self) -> Result<String, &'static str> {
         const BUFSIZE: usize = 100;
         let mut buf: [c_char; BUFSIZE] = [0; BUFSIZE];
-        unsafe {
-            let ret: *mut c_char = (self.fsource)(buf.as_mut_ptr());
-            if ret.is_null() {
-                return Err("Failed to get energymon source");
-            }
-            let buf: &[u8] = mem::transmute::<&[c_char], &[u8]>(&buf);
-            Ok(String::from_utf8_lossy(buf).into_owned())
+        let ret: *mut c_char = (self.fsource)(buf.as_mut_ptr());
+        if ret.is_null() {
+            return Err("Failed to get energymon source");
         }
+        let buf: &[u8] = unsafe {
+            mem::transmute::<&[c_char], &[u8]>(&buf)
+        };
+        Ok(String::from_utf8_lossy(buf).into_owned())
     }
 }
 
