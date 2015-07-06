@@ -1,10 +1,10 @@
-use libc::{c_int, c_double, c_char, c_void};
+use libc::{c_int, c_longlong, c_char, c_void};
 use std::mem;
 
 /// Typedef for initialization function.
 pub type EnergyMonInitFn = extern fn(*mut EnergyMon) -> c_int;
 /// Typedef for read function.
-pub type EnergyMonReadTotalFn = extern fn(*mut EnergyMon) -> c_double;
+pub type EnergyMonReadTotalFn = extern fn(*mut EnergyMon) -> c_longlong;
 /// Typedef for cleanup function.
 pub type EnergyMonFinishFn = extern fn(*mut EnergyMon) -> c_int;
 /// Typedef for function to get human-readable name.
@@ -54,7 +54,7 @@ impl EnergyMon {
     }
 
     /// Read the total energy from the `EnergyMon`.
-    pub fn read(&mut self) -> f64 {
+    pub fn read(&mut self) -> i64 {
         (self.fread)(self)
     }
 
@@ -91,7 +91,7 @@ mod test {
         let mut em: EnergyMon = EnergyMon::new().unwrap();
         em.init().unwrap();
         let val = em.read();
-        assert!(val >= 0.0);
+        assert!(val >= 0);
         let source = em.source().unwrap();
         em.finish().unwrap();
         println!("Read {} from {}", val, source);
