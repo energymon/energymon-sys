@@ -149,7 +149,11 @@ impl SingletonEnergyMon {
                 // put it on the heap
                 EM = mem::transmute(Box::new(sem));
             });
-            Some((*EM).clone())
+            if EM.is_null() {
+                None
+            } else {
+                Some((*EM).clone())
+            }
         }
     }
 
