@@ -1,4 +1,4 @@
-use libc::{c_int, c_longlong, c_char, c_void};
+use libc::{c_int, c_longlong, c_ulonglong, c_char, c_void};
 use std::mem;
 use std::sync::{Arc, Once, ONCE_INIT};
 use std::cell::Cell;
@@ -11,6 +11,8 @@ type EnergyMonReadTotalFn = extern fn(*mut EMImpl) -> c_longlong;
 type EnergyMonFinishFn = extern fn(*mut EMImpl) -> c_int;
 /// Typedef for function to get human-readable name.
 type EnergyMonGetSourceFn = extern fn(*mut c_char) -> *mut c_char;
+/// Typedef for function to get refresh interval.
+type EnergyMonGetIntervalFn = extern fn(*const EMImpl) -> c_ulonglong;
 
 #[allow(raw_pointer_derive)]
 #[derive(Clone, Copy)]
@@ -25,6 +27,8 @@ struct EMImpl {
     ffinish: EnergyMonFinishFn,
     /// Native C function type signature that gets the `EMImpl`'s human-readable name.
     fsource: EnergyMonGetSourceFn,
+    /// Native C function type signature that gets the `EMImpl`'s refresh interval.
+    finterval: EnergyMonGetIntervalFn,
     /// Native C pointer used by the underlying `EMImpl` implementation for storing state.
     state: *mut c_void,
 }
@@ -80,6 +84,11 @@ impl EMImpl {
         };
         String::from_utf8_lossy(buf).into_owned()
     }
+
+    /// Get the refresh interval from the `EMImpl`.
+    fn interval(&self) -> u64 {
+        (self.finterval)(self)
+    }
 }
 
 /// A basic energy monitor.
@@ -105,6 +114,11 @@ impl EnergyMon {
     /// Get a human-readable name of the `EnergyMon`'s source.
     pub fn source(&mut self) -> String {
         self.em.source()
+    }
+
+    /// Get the refresh interval for the `EnergyMon`.
+    pub fn interval(&self) -> u64 {
+        self.em.interval()
     }
 }
 
@@ -165,6 +179,10 @@ impl SingletonEnergyMon {
         self.em.get().source()
     }
 
+    pub fn interval(&self) -> u64 {
+        self.em.get().interval()
+    }
+
     pub unsafe fn destroy(&self) {
         println!("Finishing singleton energy monitor");
         let _ = self.em.get().finish();
@@ -180,7 +198,7 @@ mod test {
         let mut em: EnergyMon = EnergyMon::new().unwrap();
         let val = em.read();
         assert!(val >= 0);
-        println!("Read {} from {}", val, em.source());
+        println!("Read {} from {} with refresh interval {}", val, em.source(), em.interval());
     }
 
     #[test]
@@ -188,7 +206,8 @@ mod test {
         for _ in 0..2 {
             let sem: SingletonEnergyMon = SingletonEnergyMon::instance().unwrap();
             let val = sem.read();
-            println!("Read {} from {} singleton", val, sem.source());
+            println!("Read {} from {} singleton with refresh interval {}", val, sem.source(),
+                     sem.interval());
         }
         unsafe {
             SingletonEnergyMon::instance().unwrap().destroy();
