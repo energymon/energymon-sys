@@ -6,7 +6,7 @@ use std::cell::Cell;
 /// Typedef for initialization function.
 type EnergyMonInitFn = extern fn(*mut EMImpl) -> c_int;
 /// Typedef for read function.
-type EnergyMonReadTotalFn = extern fn(*mut EMImpl) -> c_longlong;
+type EnergyMonReadTotalFn = extern fn(*const EMImpl) -> c_longlong;
 /// Typedef for cleanup function.
 type EnergyMonFinishFn = extern fn(*mut EMImpl) -> c_int;
 /// Typedef for function to get human-readable name.
@@ -59,7 +59,7 @@ impl EMImpl {
     }
 
     /// Read the total energy from the `EMImpl`.
-    fn read(&mut self) -> i64 {
+    fn read(&self) -> i64 {
         (self.fread)(self)
     }
 
@@ -107,7 +107,7 @@ impl EnergyMon {
     }
 
     /// Read the total energy from the `EnergyMon`.
-    pub fn read(&mut self) -> i64 {
+    pub fn read(&self) -> i64 {
         self.em.read()
     }
 
