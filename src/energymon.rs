@@ -1,4 +1,4 @@
-use libc::{c_int, c_longlong, c_ulonglong, c_char, c_void};
+use libc::{c_int, c_ulonglong, c_char, c_void};
 use std::mem;
 use std::sync::{Arc, Once, ONCE_INIT};
 use std::cell::Cell;
@@ -6,7 +6,7 @@ use std::cell::Cell;
 /// Typedef for initialization function.
 type EnergyMonInitFn = extern fn(*mut EMImpl) -> c_int;
 /// Typedef for read function.
-type EnergyMonReadTotalFn = extern fn(*const EMImpl) -> c_longlong;
+type EnergyMonReadTotalFn = extern fn(*const EMImpl) -> c_ulonglong;
 /// Typedef for cleanup function.
 type EnergyMonFinishFn = extern fn(*mut EMImpl) -> c_int;
 /// Typedef for function to get human-readable name.
@@ -59,7 +59,7 @@ impl EMImpl {
     }
 
     /// Read the total energy from the `EMImpl`.
-    fn read(&self) -> i64 {
+    fn read(&self) -> u64 {
         (self.fread)(self)
     }
 
@@ -107,7 +107,7 @@ impl EnergyMon {
     }
 
     /// Read the total energy from the `EnergyMon`.
-    pub fn read(&self) -> i64 {
+    pub fn read(&self) -> u64 {
         self.em.read()
     }
 
@@ -171,7 +171,7 @@ impl SingletonEnergyMon {
         }
     }
 
-    pub fn read(&self) -> i64 {
+    pub fn read(&self) -> u64 {
         self.em.get().read()
     }
 
@@ -197,7 +197,6 @@ mod test {
     fn test_interface() {
         let mut em: EnergyMon = EnergyMon::new().unwrap();
         let val = em.read();
-        assert!(val >= 0);
         println!("Read {} from {} with refresh interval {}", val, em.source(), em.interval());
     }
 
