@@ -1,40 +1,6 @@
-use libc::{c_int, c_ulonglong, c_char, c_void};
+use super::*;
+use libc::{c_char};
 use std::mem;
-
-/// Typedef for initialization function.
-type EnergyMonInitFn = extern fn(*mut EMImpl) -> c_int;
-/// Typedef for read function.
-type EnergyMonReadTotalFn = extern fn(*const EMImpl) -> c_ulonglong;
-/// Typedef for cleanup function.
-type EnergyMonFinishFn = extern fn(*mut EMImpl) -> c_int;
-/// Typedef for function to get human-readable name.
-type EnergyMonGetSourceFn = extern fn(*mut c_char) -> *mut c_char;
-/// Typedef for function to get refresh interval.
-type EnergyMonGetIntervalFn = extern fn(*const EMImpl) -> c_ulonglong;
-
-#[allow(raw_pointer_derive)]
-#[derive(Clone, Copy)]
-#[repr(C)]
-/// Representation of native C struct `em_impl`.
-pub struct EMImpl {
-    /// Native C function type signature that initializes the `EMImpl`.
-    finit: EnergyMonInitFn,
-    /// Native C function type signature that reads energy data from the `EMImpl`.
-    fread: EnergyMonReadTotalFn,
-    /// Native C function type signature that cleans up the `EMImpl`.
-    ffinish: EnergyMonFinishFn,
-    /// Native C function type signature that gets the `EMImpl`'s human-readable name.
-    fsource: EnergyMonGetSourceFn,
-    /// Native C function type signature that gets the `EMImpl`'s refresh interval.
-    finterval: EnergyMonGetIntervalFn,
-    /// Native C pointer used by the underlying `EMImpl` implementation for storing state.
-    state: *mut c_void,
-}
-
-extern {
-    /// Native C function that fills in the EMImpl struct values and may allocate other resources.
-    fn em_impl_get(em: *mut EMImpl) -> c_int;
-}
 
 impl EMImpl {
     /// Create an `EMImpl` which represents a C struct.

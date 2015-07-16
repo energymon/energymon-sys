@@ -1,4 +1,4 @@
-use emimpl::EMImpl;
+use super::*;
 
 /// A basic energy monitor.
 pub struct EnergyMon {

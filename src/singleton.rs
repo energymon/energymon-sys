@@ -1,7 +1,7 @@
+use super::*;
 use std::mem;
 use std::sync::{Arc, Once, ONCE_INIT};
 use std::cell::Cell;
-use emimpl::EMImpl;
 
 #[derive(Clone)]
 pub struct SingletonEnergyMon {
