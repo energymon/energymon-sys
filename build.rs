@@ -1,3 +1,3 @@
 fn main() {
-    println!("cargo:rustc-link-lib=em-dummy");
+    println!("cargo:rustc-link-lib=energymon");
 }

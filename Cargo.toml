@@ -1,8 +1,14 @@
 [package]
-name = "energymon_sys"
+name = "energymon-sys"
 version = "0.1.0"
-authors = ["Connor Imes <cimes@mozilla.com>"]
-build="build.rs"
+authors = ["Connor Imes <connor.k.imes@gmail.com>"]
+description = "FFI bindings to libenergymon implementations"
+homepage = "https://github.com/connorimes/energymon-sys"
+repository = "https://github.com/connorimes/energymon-sys"
+keywords = ["energymon", "energy", "monitoring", "bindings"]
+
+build = "build.rs"
+links = "energymon"
 
 [dependencies]
 libc = "0.1"
