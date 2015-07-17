@@ -3,14 +3,13 @@ use super::*;
 /// A basic energy monitor.
 pub struct EnergyMon {
     /// The native C struct.
-    em: EMImpl,
+    em: em_impl,
 }
 
 impl EnergyMon {
     /// Create and initialize an `EnergyMon`.
     pub fn new() -> Result<EnergyMon, &'static str> {
-        println!("Initializing energy monitor");
-        let mut em = try!{EMImpl::new()};
+        let mut em = try!{em_impl::new()};
         try!{em.init()};
         Ok(EnergyMon { em: em })
     }
@@ -34,7 +33,6 @@ impl EnergyMon {
 impl Drop for EnergyMon {
     /// Cleanup the `EnergyMon`.
     fn drop(&mut self) {
-        println!("Finishing energy monitor");
         let _ = self.em.finish();
     }
 }

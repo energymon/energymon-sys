@@ -5,7 +5,7 @@ use std::cell::Cell;
 
 #[derive(Clone)]
 pub struct SingletonEnergyMon {
-    em: Arc<Cell<EMImpl>>,
+    em: Arc<Cell<em_impl>>,
 }
 
 impl SingletonEnergyMon {
@@ -16,7 +16,7 @@ impl SingletonEnergyMon {
         unsafe {
             ONCE.call_once(|| {
                 println!("Initializing singleton energy monitor");
-                let mut em = match EMImpl::new() {
+                let mut em = match em_impl::new() {
                     Ok(e) => e,
                     Err(e) => {
                         println!("{}", e);
