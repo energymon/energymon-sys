@@ -15,8 +15,6 @@ pub type em_get_source_func = extern fn(*mut c_char) -> *mut c_char;
 /// Typedef for function to get refresh interval.
 pub type em_get_interval_func = extern fn(*const em_impl) -> c_ulonglong;
 
-#[allow(raw_pointer_derive)]
-#[derive(Clone, Copy)]
 #[repr(C)]
 /// Representation of native C struct `em_impl`.
 pub struct em_impl {
