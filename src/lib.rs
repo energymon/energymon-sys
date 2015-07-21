@@ -2,11 +2,6 @@
 
 extern crate libc;
 
-mod wrapper;
-
-pub mod energymon;
-pub mod singleton;
-
 use libc::{c_int, c_ulonglong, c_char, c_void};
 
 /// Typedef for initialization function.
