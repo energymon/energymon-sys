@@ -31,8 +31,3 @@ pub struct em_impl {
     /// Native C pointer used by the underlying `em_impl` implementation for storing state.
     pub state: *mut c_void,
 }
-
-extern "C" {
-    /// Native C function that fills in the em_impl struct values and may allocate other resources.
-    pub fn em_impl_get(em: *mut em_impl) -> c_int;
-}
