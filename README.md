@@ -5,13 +5,15 @@ C libraries.
 Following the *-sys package conventions, the `energymon-sys` crate does not
 define higher-level abstractions over the native `energymon` library functions.
 
+The `energymon-sys` crate only provides type bindings as defined in
+`energymon.h`.
+
 The latest `EnergyMon` C libraries can be found at
 [https://github.com/connorimes/energymon](https://github.com/connorimes/energymon).
 
 ## Dependencies
 
-In order to use the `energymon-sys` crate, you must have the `energymon`
-libraries installed to the system.
+There are no direct dependencies as this crate only provides type bindings.
 
 ## Usage
 Add `energymon-sys` as a dependency in `Cargo.toml`:
