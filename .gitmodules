@@ -1,0 +1,3 @@
+[submodule "energymon-dummy/energymon"]
+	path = energymon-dummy/energymon
+	url = https://github.com/connorimes/energymon.git

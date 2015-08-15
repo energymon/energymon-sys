@@ -8,5 +8,9 @@ homepage = "https://github.com/connorimes/energymon-sys"
 repository = "https://github.com/connorimes/energymon-sys"
 keywords = ["energymon", "energy", "monitoring", "bindings"]
 
+[lib]
+name = "energymon_sys"
+path = "lib.rs"
+
 [dependencies]
 libc = "0.1"

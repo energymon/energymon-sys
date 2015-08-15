@@ -1,0 +1,24 @@
+[package]
+name = "energymon-dummy-sys"
+version = "0.1.0"
+authors = ["Connor Imes <connor.k.imes@gmail.com>"]
+description = "FFI bindings to libenergymon-dummy"
+license = "MIT"
+homepage = "https://github.com/connorimes/energymon-sys"
+repository = "https://github.com/connorimes/energymon-sys"
+keywords = ["energymon", "dummy", "energy", "monitoring", "bindings"]
+
+build = "build.rs"
+
+[lib]
+name = "energymon_dummy_sys"
+path = "lib.rs"
+
+[dependencies]
+libc = "0.1"
+
+[dependencies.energymon-sys]
+path = "../energymon"
+
+[build-dependencies]
+pkg-config = "0.3.2"
