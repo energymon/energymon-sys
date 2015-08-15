@@ -1,7 +1,7 @@
 # EnergyMon Rust Bindings
 
-The `energymon-dummy-sys` crate provides declarations and linkage for the
-`energymon-dummy-static` C library.
+The `energymon-osp-polling-sys` crate provides declarations and linkage for the
+`energymon-osp-polling-static` C library.
 Following the *-sys package conventions, this crate does not define
 higher-level abstractions over the native library functions.
 
@@ -17,9 +17,9 @@ If the libraries are not found, the build process will try to fetch and
 compile them.
 
 ## Usage
-Add `energymon-dummy-sys` as a dependency in `Cargo.toml`:
+Add `energymon-osp-polling-sys` as a dependency in `Cargo.toml`:
 
 ```toml
-[dependencies.energymon-dummy-sys]
+[dependencies.energymon-osp-polling-sys]
 git = "https://github.com/connorimes/energymon-sys.git"
 ```

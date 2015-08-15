@@ -12,3 +12,4 @@
 
 # Other
 Cargo.lock
+target/
