@@ -16,6 +16,14 @@ installed to the system where they can be found by `pkg-config`.
 If the libraries are not found, the build process will try to fetch and
 compile them.
 
+Additionally, the `libhidapi-libusb` library must be installed and discoverable
+by `pkg-config`.
+It is available in the Universe repository for Ubuntu 14.04 and later:
+
+```sh
+sudo apt-get install libhidapi-dev
+```
+
 ## Usage
 Add `energymon-osp-polling-sys` as a dependency in `Cargo.toml`:
 

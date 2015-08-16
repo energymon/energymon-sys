@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
+    pkg_config::find_library("hidapi-libusb").unwrap();
     let pc = pkg_config::find_library("energymon-osp-polling-static");
     if pc.is_err() {
         let src = PathBuf::from(&env::var_os("CARGO_MANIFEST_DIR").unwrap())
