@@ -17,6 +17,7 @@ fn main() {
         println!("cargo:rustc-link-lib=static=energymon-msr-static");
         println!("cargo:rustc-link-search=native={}/_build/lib", src.display())
     }
+    println!("cargo:rustc-flags=-l m");
 }
 
 fn run(cmd: &mut Command) {
