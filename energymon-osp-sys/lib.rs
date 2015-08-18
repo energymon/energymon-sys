@@ -1,3 +1,5 @@
+//! FFI bindings for `energymon-osp.h`.
+
 extern crate libc;
 extern crate energymon_sys;
 

@@ -1,3 +1,5 @@
+//! FFI bindings for `energymon.h`.
+
 #![allow(non_camel_case_types)]
 
 extern crate libc;
