@@ -15,7 +15,7 @@ fn main() {
         let build = src.join("_build");
         remove_dir_all(&build).ok();
         create_dir_all(&build).unwrap();
-        run(Command::new("cmake").arg("..").current_dir(&build));
+        run(Command::new("cmake").arg(src.to_str().unwrap()).current_dir(&build));
         run(Command::new("make").arg("energymon-dummy-static").current_dir(&build));
         println!("cargo:rustc-link-lib=static=energymon-dummy-static");
         println!("cargo:rustc-link-search=native={}", build.join("lib").display());
