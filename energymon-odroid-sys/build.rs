@@ -18,7 +18,7 @@ fn main() {
         run(Command::new("cmake").arg("..").current_dir(&build));
         run(Command::new("make").arg("energymon-odroid-static").current_dir(&build));
         println!("cargo:rustc-link-lib=static=energymon-odroid-static");
-        println!("cargo:rustc-link-search=native={}/lib", build.display())
+        println!("cargo:rustc-link-search=native={}", build.join("lib").display());
     }
     println!("cargo:rustc-flags=-l pthread");
 }
