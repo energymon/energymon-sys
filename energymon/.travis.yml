@@ -1,0 +1,20 @@
+language: c
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install libudev-dev libusb-1.0-0-dev autotools-dev autoconf automake libtool
+  - wget https://github.com/signal11/hidapi/archive/master.zip -O /tmp/hidapi.zip
+  - unzip /tmp/hidapi.zip -d /tmp
+  - cd /tmp/hidapi-master
+  - ./bootstrap
+  - ./configure
+  - make
+  - sudo make install
+  - sudo ldconfig
+  - cd -
+
+script:
+  - mkdir _build
+  - cd _build
+  - cmake ..
+  - make

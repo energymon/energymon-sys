@@ -1,25 +1,32 @@
 extern crate pkg_config;
 
 use std::env;
-use std::fs::{self, create_dir_all, remove_dir_all};
+use std::fs::{self};
 use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
     pkg_config::find_library("hidapi-libusb").unwrap();
-    let pc = pkg_config::find_library("energymon-osp-static");
-    if pc.is_err() {
-        let src = PathBuf::from(&env::var_os("CARGO_MANIFEST_DIR").unwrap())
-                               .join("energymon");
-        let dst = PathBuf::from(&env::var_os("OUT_DIR").unwrap());
-        let _ = fs::create_dir(&dst);
-        let build = src.join("_build");
-        remove_dir_all(&build).ok();
-        create_dir_all(&build).unwrap();
-        run(Command::new("cmake").arg(src.to_str().unwrap()).current_dir(&build));
-        run(Command::new("make").arg("energymon-osp-static").current_dir(&build));
-        println!("cargo:rustc-link-lib=static=energymon-osp-static");
-        println!("cargo:rustc-link-search=native={}", build.join("lib").display());
+    match pkg_config::find_library("energymon-osp-static") {
+        Ok(_) => (),
+        Err(_) => {
+            let src = PathBuf::from(&env::var_os("CARGO_MANIFEST_DIR").unwrap())
+                                   .parent().unwrap().join("energymon");
+            let build = PathBuf::from(&env::var_os("OUT_DIR").unwrap()).join("_build");
+            let target: String = env::var("TARGET").unwrap();
+            let target_parts: Vec<&str> = target.split('-').collect();
+            let cmake_var = match target_parts[target_parts.len() - 1].starts_with("android") {
+                true => format!("-DCMAKE_TOOLCHAIN_FILE={}",
+                                src.join("cmake-toolchain").join("android.toolchain.cmake").display()),
+                false => "".to_owned(),
+            };
+            fs::remove_dir_all(&build).ok();
+            fs::create_dir_all(&build).unwrap();
+            run(Command::new("cmake").arg(cmake_var).arg(src.to_str().unwrap()).current_dir(&build));
+            run(Command::new("make").arg("energymon-osp-static").current_dir(&build));
+            println!("cargo:rustc-link-lib=static=energymon-osp-static");
+            println!("cargo:rustc-link-search=native={}", build.join("lib").display());
+        },
     }
     println!("cargo:rustc-flags=-l hidapi-libusb");
 }
