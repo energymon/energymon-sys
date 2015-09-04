@@ -6,7 +6,7 @@ Following the *-sys package conventions, this crate does not define
 higher-level abstractions over the native library functions.
 
 The latest `energymon` C libraries can be found at
-[https://github.com/connorimes/energymon](https://github.com/connorimes/energymon).
+[https://github.com/energymon/energymon](https://github.com/energymon/energymon).
 
 ## Dependencies
 
@@ -20,5 +20,5 @@ Add `energymon-msr-sys` as a dependency in `Cargo.toml`:
 
 ```toml
 [dependencies.energymon-msr-sys]
-git = "https://github.com/connorimes/energymon-sys.git"
+git = "https://github.com/energymon/energymon-sys.git"
 ```

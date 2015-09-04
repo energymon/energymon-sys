@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Connor Imes <connor.k.imes@gmail.com>"]
 description = "FFI bindings to libenergymon-osp-static"
 license = "MIT"
-homepage = "https://github.com/connorimes/energymon-sys"
-repository = "https://github.com/connorimes/energymon-sys"
+homepage = "https://github.com/energymon/energymon-sys"
+repository = "https://github.com/energymon/energymon-sys"
 keywords = ["energymon", "osp", "energy", "monitoring", "bindings"]
 
 build = "build.rs"
