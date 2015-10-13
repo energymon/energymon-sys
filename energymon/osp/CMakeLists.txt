@@ -16,19 +16,15 @@ endif(NOT ${HIDAPIUSB_FOUND})
 
 add_library(${LNAME} SHARED ${SOURCES})
 target_link_libraries(${LNAME} hidapi-libusb)
-SET_FPIC(${LNAME})
 
 add_library(${LNAME}-static STATIC ${SOURCES})
 target_link_libraries(${LNAME}-static hidapi-libusb)
-SET_FPIC(${LNAME}-static)
 
 add_library(${LNAME}-polling SHARED ${SOURCES})
 target_link_libraries(${LNAME}-polling hidapi-libusb pthread)
-SET_FPIC(${LNAME}-polling)
 
 add_library(${LNAME}-polling-static STATIC ${SOURCES})
 target_link_libraries(${LNAME}-polling-static hidapi-libusb pthread)
-SET_FPIC(${LNAME}-polling-static)
 
 if(DEFAULT STREQUAL "osp")
   BUILD_DEFAULT("${SOURCES}" "hidapi-libusb" "")
@@ -59,5 +55,6 @@ PKG_CONFIG("${LNAME}-polling-static" "${DESCRIPTION_POLLING}" "-lhidapi-libusb -
 install(TARGETS ${LNAME} ${LNAME}-static DESTINATION lib)
 install(TARGETS ${LNAME}-polling ${LNAME}-polling-static DESTINATION lib)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}.h DESTINATION include/${PROJECT_NAME})
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}-polling.h DESTINATION include/${PROJECT_NAME})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${LNAME}.pc ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${LNAME}-static.pc DESTINATION lib/pkgconfig)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${LNAME}-polling.pc ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${LNAME}-polling-static.pc DESTINATION lib/pkgconfig)
