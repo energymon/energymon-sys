@@ -44,9 +44,10 @@ set(DEFAULT "dummy" CACHE STRING "Default EnergyMon implementation")
 
 add_subdirectory(dummy)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
   add_subdirectory(msr)
   add_subdirectory(odroid)
+  add_subdirectory(odroid-ioctl)
   add_subdirectory(osp)
   add_subdirectory(rapl)
 endif()
