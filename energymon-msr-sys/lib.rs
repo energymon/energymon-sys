@@ -3,8 +3,8 @@
 extern crate libc;
 extern crate energymon_sys;
 
+pub use energymon_sys::energymon;
 use libc::{c_int, c_ulonglong, c_char, size_t};
-use energymon_sys::energymon;
 
 extern "C" {
     pub fn energymon_init_msr(em: *mut energymon) -> c_int;
