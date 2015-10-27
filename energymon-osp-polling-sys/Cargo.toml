@@ -12,7 +12,7 @@ build = "build.rs"
 
 [lib]
 name = "energymon_osp_polling_sys"
-path = "../energymon-osp-sys/lib.rs"
+path = "lib.rs"
 
 [dependencies]
 libc = "0.1"
