@@ -1,7 +1,7 @@
 # EnergyMon Rust Bindings
 
-The `energymon-msr-sys` crate provides declarations and linkage for the
-`energymon-msr-static` C library.
+The `energymon-dummy-sys` crate provides declarations and linkage for the
+`energymon-dummy-static` C library.
 Following the *-sys package conventions, this crate does not define
 higher-level abstractions over the native library functions.
 
@@ -16,9 +16,9 @@ installed to the system where they can be found by `pkg-config`.
 If the libraries are not found, the build process will try to compile them.
 
 ## Usage
-Add `energymon-msr-sys` as a dependency in `Cargo.toml`:
+Add `energymon-dummy-sys` as a dependency in `Cargo.toml`:
 
 ```toml
-[dependencies.energymon-msr-sys]
+[dependencies.energymon-dummy-sys]
 git = "https://github.com/energymon/energymon-sys.git"
 ```
