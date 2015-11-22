@@ -13,4 +13,4 @@ name = "energymon_sys"
 path = "lib.rs"
 
 [dependencies]
-libc = "0.1"
+libc = "0.2"

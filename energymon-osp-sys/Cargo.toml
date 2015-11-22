@@ -15,7 +15,7 @@ name = "energymon_osp_sys"
 path = "lib.rs"
 
 [dependencies]
-libc = "0.1"
+libc = "0.2"
 
 [dependencies.energymon-sys]
 path = "../energymon-sys"
