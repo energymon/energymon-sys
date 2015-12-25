@@ -27,7 +27,7 @@ fn main() {
             println!("cargo:rustc-link-search=native={}", build.join("lib").display());
         },
     }
-    println!("cargo:rustc-flags=-l pthread");
+    println!("cargo:rustc-flags=-l pthread -l rt");
 }
 
 fn run(cmd: &mut Command) {

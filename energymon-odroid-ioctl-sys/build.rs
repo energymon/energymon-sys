@@ -6,8 +6,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
-    pkg_config::find_library("hidapi-libusb").unwrap();
-    match pkg_config::find_library("energymon-osp-polling-static") {
+    match pkg_config::find_library("energymon-odroid-ioctl-static") {
         Ok(_) => (),
         Err(_) => {
             let src = PathBuf::from(&env::var_os("CARGO_MANIFEST_DIR").unwrap())
@@ -23,12 +22,12 @@ fn main() {
             fs::remove_dir_all(&build).ok();
             fs::create_dir_all(&build).unwrap();
             run(Command::new("cmake").arg(cmake_var).arg(src.to_str().unwrap()).current_dir(&build));
-            run(Command::new("make").arg("energymon-osp-polling-static").current_dir(&build));
-            println!("cargo:rustc-link-lib=static=energymon-osp-polling-static");
+            run(Command::new("make").arg("energymon-odroid-ioctl-static").current_dir(&build));
+            println!("cargo:rustc-link-lib=static=energymon-odroid-ioctl-static");
             println!("cargo:rustc-link-search=native={}", build.join("lib").display());
         },
     }
-    println!("cargo:rustc-flags=-l hidapi-libusb -l pthread -l rt");
+    println!("cargo:rustc-flags=-l pthread -l rt");
 }
 
 fn run(cmd: &mut Command) {
