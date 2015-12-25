@@ -13,7 +13,13 @@ extern "C" {
 
 #include "energymon.h"
 
-int energymon_get_default(energymon* impl);
+/**
+ * Get the default energymon implementation.
+ * Only fails if em is NULL.
+ *
+ * @return 0 on success, failure code otherwise
+ */
+int energymon_get_default(energymon* em);
 
 #ifdef __cplusplus
 }
