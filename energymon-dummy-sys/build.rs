@@ -6,7 +6,9 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
-    match pkg_config::find_library("energymon-dummy-static") {
+    let lib = "energymon-dummy-static";
+    env::set_var("ENERGYMON_DUMMY_STATIC_STATIC", "");
+    match pkg_config::find_library(&lib) {
         Ok(_) => (),
         Err(_) => {
             let src = PathBuf::from(&env::var_os("CARGO_MANIFEST_DIR").unwrap())
@@ -31,11 +33,23 @@ fn main() {
             };
             fs::remove_dir_all(&build).ok();
             fs::create_dir_all(&build).unwrap();
-            run(Command::new("cmake").arg(cmake_var).arg(cmake_gen).arg(src.to_str().unwrap()).current_dir(&build));
-            run(Command::new("make").arg("energymon-dummy-static").current_dir(&build));
-            println!("cargo:rustc-link-lib=static=energymon-dummy-static");
-            println!("cargo:rustc-link-search=native={}", build.join("lib").display());
+            run(Command::new("cmake").arg(cmake_var).arg(&cmake_gen).arg(src.to_str().unwrap()).current_dir(&build));
+            run(Command::new("make").arg(&lib).current_dir(&build));
+            // run pkg-config on compiled dir to get any transitive dependencies of static lib
+            set_pkg_config_path(&build, !cmake_gen.is_empty());
+            pkg_config::find_library(&lib).unwrap();
         },
+    }
+}
+
+fn set_pkg_config_path(build: &PathBuf, is_windows: bool) {
+    let delimiter = match is_windows {
+        true => ";",
+        false => ":",
+    };
+    match env::var_os("PKG_CONFIG_PATH") {
+        Some(p) => env::set_var("PKG_CONFIG_PATH", format!("{:?}{}{:?}", build, delimiter, p)),
+        None => env::set_var("PKG_CONFIG_PATH", build),
     }
 }
 

@@ -16,7 +16,7 @@
 
 // set a minimum sleep time between polls
 #ifndef ENERGYMON_MIN_INTERVAL_US
-  #define ENERGYMON_MIN_INTERVAL_US 1000
+  #define ENERGYMON_MIN_INTERVAL_US 100000
 #endif
 
 static volatile int running = 1;
@@ -26,8 +26,13 @@ static void print_usage(const char* app) {
   fprintf(stderr, "  %s <output_file>\n", app);
 }
 
-void shandle(int dummy) {
-  running = 0;
+void shandle(int sig) {
+  switch (sig) {
+    case SIGTERM:
+      running = 0;
+    default:
+      break;
+  }
 }
 
 int main(int argc, char** argv) {
