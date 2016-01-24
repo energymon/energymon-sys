@@ -1,0 +1,59 @@
+# TODO: Disabled ODROID Smart Power implementations until we figure out how build them cleanly
+
+os:
+  - linux
+
+addons:
+  apt:
+    sources:
+      - kubuntu-backports
+    packages:
+      - cmake
+      # - libudev-dev
+      # - libusb-1.0-0-dev
+      # - autotools-dev
+      # - autoconf
+      # - automake
+      # - libtool
+
+# before_install:
+#   - wget https://github.com/signal11/hidapi/archive/master.zip -O /tmp/hidapi.zip
+#   - unzip /tmp/hidapi.zip -d /tmp
+#   - cd /tmp/hidapi-master
+#   - ./bootstrap
+#   - ./configure
+#   - make
+#   - cd -
+
+language: rust
+
+rust:
+  - 1.0.0
+  - stable
+  - beta
+  - nightly
+
+matrix:
+  allow_failures:
+    - rust: nightly
+
+
+script:
+  - cd energymon-sys
+  - cargo build -v
+  - cd ../energymon-default-sys
+  - cargo build -v
+  - cd ../energymon-dummy-sys
+  - cargo build -v
+  - cd ../energymon-msr-sys
+  - cargo build -v
+  - cd ../energymon-odroid-ioctl-sys
+  - cargo build -v
+  - cd ../energymon-odroid-sys
+  - cargo build -v
+  # - cd ../energymon-osp-polling-sys
+  # - cargo build -v
+  # - cd ../energymon-osp-sys
+  # - cargo build -v
+  - cd ../energymon-rapl-sys
+  - cargo build -v

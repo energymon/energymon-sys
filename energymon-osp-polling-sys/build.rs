@@ -48,7 +48,10 @@ fn set_pkg_config_path(build: &PathBuf, is_windows: bool) {
         false => ":",
     };
     match env::var_os("PKG_CONFIG_PATH") {
-        Some(p) => env::set_var("PKG_CONFIG_PATH", format!("{:?}{}{:?}", build, delimiter, p)),
+        Some(p) => {
+            let path = format!("{:?}{}{:?}", build, delimiter, p);
+            env::set_var("PKG_CONFIG_PATH", &path);
+        },
         None => env::set_var("PKG_CONFIG_PATH", build),
     }
 }
