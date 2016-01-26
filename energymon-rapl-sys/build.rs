@@ -6,8 +6,8 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
-    let lib = "energymon-rapl-static";
-    env::set_var("ENERGYMON_RAPL_STATIC_STATIC", "");
+    let lib = "energymon-rapl";
+    env::set_var("ENERGYMON_RAPL", "");
     match pkg_config::find_library(&lib) {
         Ok(_) => (),
         Err(_) => {
@@ -33,7 +33,8 @@ fn main() {
             };
             fs::remove_dir_all(&build).ok();
             fs::create_dir_all(&build).unwrap();
-            run(Command::new("cmake").arg(cmake_var).arg(&cmake_gen).arg(src.to_str().unwrap()).current_dir(&build));
+            run(Command::new("cmake").arg("-DBUILD_SHARED_LIBS=false").arg(cmake_var).arg(&cmake_gen)
+                .arg(src.to_str().unwrap()).current_dir(&build));
             run(Command::new("make").arg(&lib).current_dir(&build));
             // run pkg-config on compiled dir to get any transitive dependencies of static lib
             set_pkg_config_path(&build, !cmake_gen.is_empty());

@@ -7,6 +7,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unknown-pragmas -Wextra -pedantic
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
+# Build shared objects by default
+if(NOT DEFINED BUILD_SHARED_LIBS)
+  set(BUILD_SHARED_LIBS TRUE CACHE STRING "Whether to build shared or static libs")
+endif()
+
 # force fPIC on static libs
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
@@ -16,23 +21,20 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 macro(BUILD_DEFAULT source deplibs definitions)
   add_library(energymon-default SHARED ${source})
   target_link_libraries(energymon-default ${deplibs})
-
-  add_library(energymon-default-static STATIC ${source})
-  target_link_libraries(energymon-default-static ${deplibs})
-
-  set_target_properties(energymon-default energymon-default-static PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
+  set_target_properties(energymon-default PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
 endmacro(BUILD_DEFAULT)
 
-macro(PKG_CONFIG name description dependencies)
+macro(PKG_CONFIG name description requires_private libs_private)
   set(PKG_CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
   set(PKG_CONFIG_EXEC_PREFIX "\${prefix}")
   set(PKG_CONFIG_LIBDIR "\${prefix}/lib")
   set(PKG_CONFIG_INCLUDEDIR "\${prefix}/include/energymon")
   set(PKG_CONFIG_NAME "${name}")
   set(PKG_CONFIG_DESCRIPTION "${description}")
+  set(PKG_CONFIG_REQUIRES_PRIVATE "${requires_private}")
   set(PKG_CONFIG_CFLAGS "-I\${includedir}")
   set(PKG_CONFIG_LIBS "-L\${libdir} -l${name}")
-  set(PKG_CONFIG_LIBS_PRIVATE "${dependencies}")
+  set(PKG_CONFIG_LIBS_PRIVATE "${libs_private}")
   # The config file that will be installed
   configure_file(
     "${CMAKE_SOURCE_DIR}/pkgconfig.in"
@@ -61,7 +63,15 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
   add_subdirectory(msr)
   add_subdirectory(odroid)
   add_subdirectory(odroid-ioctl)
-  add_subdirectory(osp)
+
+  find_package(PkgConfig REQUIRED)
+  pkg_search_module(HIDAPIUSB hidapi-libusb)
+  if(${HIDAPIUSB_FOUND})
+    add_subdirectory(osp)
+  else()
+    message(STATUS "hidapi-libusb not found - skipping OSP implementation")
+  endif()
+
   add_subdirectory(rapl)
 endif()
 
