@@ -1,7 +1,7 @@
 # EnergyMon Rust Bindings
 
 The `energymon-odroid-ioctl-sys` crate provides declarations and linkage for
-the `energymon-odroid-ioctl-static` C library.
+the `energymon-odroid-ioctl` C library.
 Following the *-sys package conventions, this crate does not define
 higher-level abstractions over the native library functions.
 

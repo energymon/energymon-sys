@@ -1,7 +1,7 @@
 # EnergyMon Rust Bindings
 
 The `energymon-osp-sys` crate provides declarations and linkage for the
-`energymon-osp-static` C library.
+`energymon-osp` C library.
 Following the *-sys package conventions, this crate does not define
 higher-level abstractions over the native library functions.
 

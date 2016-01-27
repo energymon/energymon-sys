@@ -1,7 +1,7 @@
 # EnergyMon Rust Bindings
 
 The `energymon-default-sys` crate provides declarations and linkage for the
-`energymon-default-static` C library.
+`energymon-default` C library.
 Following the *-sys package conventions, this crate does not define
 higher-level abstractions over the native library functions.
 

@@ -1,7 +1,7 @@
 # EnergyMon Rust Bindings
 
 The `energymon-rapl-sys` crate provides declarations and linkage for the
-`energymon-rapl-static` C library.
+`energymon-rapl` C library.
 Following the *-sys package conventions, this crate does not define
 higher-level abstractions over the native library functions.
 

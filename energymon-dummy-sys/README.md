@@ -1,7 +1,7 @@
 # EnergyMon Rust Bindings
 
 The `energymon-dummy-sys` crate provides declarations and linkage for the
-`energymon-dummy-static` C library.
+`energymon-dummy` C library.
 Following the *-sys package conventions, this crate does not define
 higher-level abstractions over the native library functions.
 
