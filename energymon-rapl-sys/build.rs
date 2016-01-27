@@ -7,7 +7,7 @@ use std::process::Command;
 
 fn main() {
     let lib = "energymon-rapl";
-    env::set_var("ENERGYMON_RAPL", "");
+    env::set_var("ENERGYMON_RAPL_STATIC", "");
     match pkg_config::find_library(&lib) {
         Ok(_) => (),
         Err(_) => {
