@@ -2,12 +2,13 @@
 name = "energymon-rapl-sys"
 version = "0.1.0"
 authors = ["Connor Imes <connor.k.imes@gmail.com>"]
-description = "FFI bindings to libenergymon-rapl-static"
+description = "FFI bindings to libenergymon-rapl"
 license = "MIT OR Apache-2.0"
 homepage = "https://github.com/energymon/energymon-sys"
 repository = "https://github.com/energymon/energymon-sys"
 keywords = ["energymon", "rapl", "energy", "monitoring", "bindings"]
 
+links = "energymon-rapl"
 build = "build.rs"
 
 [lib]
@@ -21,4 +22,4 @@ libc = "0.2"
 path = "../energymon-sys"
 
 [build-dependencies]
-pkg-config = "0.3.2"
+energymon-builder = { path = "../energymon-builder" }

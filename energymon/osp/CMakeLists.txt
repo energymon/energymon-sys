@@ -6,8 +6,15 @@ set(DESCRIPTION_POLLING "EnergyMon implementation for ODROID Smart Power with Po
 
 # Dependencies
 
-find_package(PkgConfig REQUIRED)
-pkg_search_module(HIDAPIUSB REQUIRED hidapi-libusb)
+find_package(PkgConfig)
+if(${PKG_CONFIG_FOUND})
+  pkg_search_module(HIDAPIUSB hidapi-libusb)
+endif()
+if(NOT HIDAPIUSB_FOUND) # doesn't seem to work if we use ${} syntax...
+  # fail gracefully
+  message(WARNING "${LNAME}: Missing libhidapi-libusb - skipping this project")
+  return()
+endif()
 
 include_directories(${HIDAPIUSB_INCLUDE_DIRS})
 
@@ -19,17 +26,17 @@ target_link_libraries(${LNAME} -L${HIDAPIUSB_LIBDIR} ${HIDAPIUSB_LIBRARIES})
 add_library(${LNAME}-polling ${SOURCES_POLLING})
 target_link_libraries(${LNAME}-polling -L${HIDAPIUSB_LIBDIR} ${HIDAPIUSB_LIBRARIES} pthread rt)
 
-if(DEFAULT STREQUAL "osp")
+if(DEFAULT MATCHES "osp|energymon-osp")
   BUILD_DEFAULT("${SOURCES}" "-L${HIDAPIUSB_LIBDIR};${HIDAPIUSB_LIBRARIES}" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "${HIDAPIUSB_LIBRARIES}" "")
   install(TARGETS energymon-default DESTINATION lib)
-elseif(DEFAULT STREQUAL "osp-polling")
+elseif(DEFAULT MATCHES "osp-polling|energymon-osp-polling")
   BUILD_DEFAULT("${SOURCES_POLLING}" "-L${HIDAPIUSB_LIBDIR};${HIDAPIUSB_LIBRARIES};pthread;rt" "ENERGYMON_OSP_USE_POLLING")
   PKG_CONFIG("energymon-default" "${DESCRIPTION_POLLING}" "${HIDAPIUSB_LIBRARIES}" "-lpthread -lrt")
   install(TARGETS energymon-default DESTINATION lib)
 endif()
 
-set_target_properties (${LNAME}-polling PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_OSP_USE_POLLING")
+set_target_properties(${LNAME}-polling PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_OSP_USE_POLLING")
 
 # pkg-config
 
