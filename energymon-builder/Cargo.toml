@@ -1,0 +1,16 @@
+[package]
+name = "energymon-builder"
+version = "0.1.0"
+authors = ["Connor Imes <connor.k.imes@gmail.com>"]
+description = "EnergyMon Build Helper"
+license = "MIT OR Apache-2.0"
+homepage = "https://github.com/energymon/energymon-sys"
+repository = "https://github.com/energymon/energymon-sys"
+keywords = ["energymon", "energy", "monitoring", "bindings"]
+
+[lib]
+name = "energymon_builder"
+path = "lib.rs"
+
+[dependencies]
+pkg-config = "0.3.2"
