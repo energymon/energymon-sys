@@ -17,5 +17,9 @@ extern "C" {
 
     pub fn energymon_get_interval_osp(em: *const energymon) -> uint64_t;
 
+    pub fn energymon_get_precision_osp(em: *const energymon) -> uint64_t;
+
+    pub fn energymon_is_exclusive_osp() -> c_int;
+
     pub fn energymon_get_osp(em: *mut energymon) -> c_int;
 }

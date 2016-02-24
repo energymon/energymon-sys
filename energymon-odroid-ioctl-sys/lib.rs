@@ -17,5 +17,9 @@ extern "C" {
 
     pub fn energymon_get_interval_odroid_ioctl(em: *const energymon) -> uint64_t;
 
+    pub fn energymon_get_precision_odroid_ioctl(em: *const energymon) -> uint64_t;
+
+    pub fn energymon_is_exclusive_odroid_ioctl() -> c_int;
+
     pub fn energymon_get_odroid_ioctl(em: *mut energymon) -> c_int;
 }

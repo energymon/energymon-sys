@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.9)
 
 project(energymon)
-set(PROJECT_VERSION 0.1.0)
+set(PROJECT_VERSION 0.2.0)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unknown-pragmas -Wextra -pedantic -pedantic-errors -std=gnu99")
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
@@ -14,6 +14,15 @@ endif()
 
 # force fPIC on static libs
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  # Determine if we should link with librt for libraries that use "clock_gettime"
+  include(CheckFunctionExists)
+  CHECK_FUNCTION_EXISTS(clock_gettime HAVE_CLOCK_GETTIME)
+  if(NOT HAVE_CLOCK_GETTIME)
+    find_library(LIBRT NAMES rt)
+  endif()
+endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -58,19 +67,26 @@ endmacro(PKG_CONFIG)
 set(DEFAULT "dummy" CACHE STRING "Default EnergyMon implementation")
 
 add_subdirectory(dummy)
+add_subdirectory(shmem)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
   add_subdirectory(msr)
   add_subdirectory(odroid)
-  add_subdirectory(odroid-ioctl)
   add_subdirectory(osp)
   add_subdirectory(rapl)
+  add_subdirectory(wattsup)
 endif()
 
 # Binaries
 
 add_executable(energymon src/app/energymon.c)
 target_link_libraries(energymon energymon-default)
+
+add_executable(energymon-idle-power src/app/energymon-idle-power.c;src/energymon-time-util.c)
+target_link_libraries(energymon-idle-power energymon-default ${LIBRT})
+
+add_executable(energymon-overhead src/app/energymon-overhead.c;src/energymon-time-util.c)
+target_link_libraries(energymon-overhead energymon-default ${LIBRT})
 
 # Tests
 
@@ -83,7 +99,7 @@ target_link_libraries(interval-test energymon-default)
 # Install
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/inc/ DESTINATION include/${PROJECT_NAME})
-install(TARGETS energymon DESTINATION bin)
+install(TARGETS energymon energymon-idle-power energymon-overhead DESTINATION bin)
 
 # Uninstall
 

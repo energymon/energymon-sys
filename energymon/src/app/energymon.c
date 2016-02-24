@@ -29,6 +29,16 @@ static void print_usage(const char* app) {
 void shandle(int sig) {
   switch (sig) {
     case SIGTERM:
+    case SIGINT:
+#ifdef SIGQUIT
+    case SIGQUIT:
+#endif
+#ifdef SIGKILL
+    case SIGKILL:
+#endif
+#ifdef SIGHUP
+    case SIGHUP:
+#endif
       running = 0;
     default:
       break;

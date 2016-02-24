@@ -17,5 +17,9 @@ extern "C" {
 
     pub fn energymon_get_interval_msr(em: *const energymon) -> uint64_t;
 
+    pub fn energymon_get_precision_msr(em: *const energymon) -> uint64_t;
+
+    pub fn energymon_is_exclusive_msr() -> c_int;
+
     pub fn energymon_get_msr(em: *mut energymon) -> c_int;
 }
