@@ -70,6 +70,8 @@ int energymon_get_default(energymon* em) {
 
 typedef struct msr_info {
   int fd;
+  unsigned int n_overflow;
+  uint64_t energy_last;
   double energy_units;
 } msr_info;
 
@@ -105,6 +107,8 @@ static inline int msr_info_init(msr_info* m, unsigned int n, char* env_cores) {
     strtok_r(env_cores, ENERGYMON_MSRS_DELIMS, &saveptr);
   errno = 0;
   for (i = 0; tok && i < n && !errno; i++) {
+    m[i].n_overflow = 0;
+    m[i].energy_last = 0;
     snprintf(filename, sizeof(filename), "/dev/cpu/%s/msr", tok);
     if ((m[i].fd = open(filename, O_RDONLY)) <= 0 ||
         pread(m[i].fd, &msr_val, sizeof(msr_val), MSR_RAPL_POWER_UNIT) < 0) {
@@ -183,7 +187,13 @@ uint64_t energymon_read_total_msr(const energymon* em) {
   for (errno = 0, i = 0; i < state->msr_count && !errno; i++) {
     if (pread(state->msrs[i].fd, &msr_val, sizeof(uint64_t),
               MSR_PKG_ENERGY_STATUS) == sizeof(uint64_t)) {
-      total += msr_val * state->msrs[i].energy_units * 1000000;
+      // overflows at 32 bits
+      if (msr_val < state->msrs[i].energy_last) {
+        state->msrs[i].n_overflow++;
+      }
+      state->msrs[i].energy_last = msr_val;
+      total += (msr_val + state->msrs[i].n_overflow * UINT32_MAX)
+               * state->msrs[i].energy_units * 1000000;
     }
   }
   return errno ? 0 : total;
@@ -222,6 +232,32 @@ uint64_t energymon_get_interval_msr(const energymon* em) {
   return 1000;
 }
 
+uint64_t energymon_get_precision_msr(const energymon* em) {
+  if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+  energymon_msr* state = (energymon_msr*) em->state;
+  uint64_t prec;
+  unsigned int i;
+  if (state->msr_count == 0) {
+    prec = 1;
+  } else {
+    prec = UINT64_MAX;
+    for (i = 0; i < state->msr_count; i++) {
+      if (state->msrs[i].energy_units < prec) {
+        // 61 uJ by default
+        prec = (uint64_t) (state->msrs[i].energy_units * 1000000);
+      }
+    }
+  }
+  return prec ? prec : 1;
+}
+
+int energymon_is_exclusive_msr() {
+  return 0;
+}
+
 int energymon_get_msr(energymon* em) {
   if (em == NULL) {
     errno = EINVAL;
@@ -232,6 +268,8 @@ int energymon_get_msr(energymon* em) {
   em->ffinish = &energymon_finish_msr;
   em->fsource = &energymon_get_source_msr;
   em->finterval = &energymon_get_interval_msr;
+  em->fprecision = &energymon_get_precision_msr;
+  em->fexclusive = &energymon_is_exclusive_msr;
   em->state = NULL;
   return 0;
 }

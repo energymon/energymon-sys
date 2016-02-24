@@ -17,5 +17,9 @@ extern "C" {
 
     pub fn energymon_get_interval_dummy(em: *const energymon) -> uint64_t;
 
+    pub fn energymon_get_precision_dummy(em: *const energymon) -> uint64_t;
+
+    pub fn energymon_is_exclusive_dummy() -> c_int;
+
     pub fn energymon_get_dummy(em: *mut energymon) -> c_int;
 }

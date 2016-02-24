@@ -115,12 +115,16 @@ int energymon_finish_odroid(energymon* em) {
     return -1;
   }
 
-  int err_save;
+  int err_save = 0;
   unsigned int i;
   energymon_odroid* state = (energymon_odroid*) em->state;
-  // stop sensors polling thread and cleanup
-  state->poll_sensors = 0;
-  err_save = pthread_join(state->thread, NULL);
+
+  if (state->poll_sensors) {
+    // stop sensors polling thread and cleanup
+    state->poll_sensors = 0;
+    pthread_cancel(state->thread);
+    err_save = pthread_join(state->thread, NULL);
+  }
 
   // close individual sensor files
   for (i = 0; i < state->count; i++) {
@@ -159,7 +163,7 @@ static inline char** get_sensor_directories(unsigned int* count) {
   unsigned int i;
   int err_save;
   struct dirent* entry;
-  char** directories;
+  char** directories = NULL;
   *count = 0;
   errno = 0;
   DIR* sensors_dir = opendir(INA231_DIR);
@@ -211,7 +215,7 @@ static void* odroid_poll_sensors(void* args) {
   int64_t exec_us;
   int err_save;
   struct timespec ts;
-  if (clock_gettime(CLOCK_MONOTONIC, &ts)) {
+  if (energymon_clock_gettime(&ts)) {
     // must be that CLOCK_MONOTONIC is not supported
     perror("odroid_poll_sensors");
     return (void*) NULL;
@@ -225,7 +229,7 @@ static void* odroid_poll_sensors(void* args) {
       }
     }
     err_save = errno;
-    exec_us = energymon_gettime_us(CLOCK_MONOTONIC, &ts);
+    exec_us = energymon_gettime_us(&ts);
     if (err_save) {
       errno = err_save;
       perror("odroid_poll_sensors: skipping power sensor reading");
@@ -331,6 +335,20 @@ uint64_t energymon_get_interval_odroid(const energymon* em) {
   return ((energymon_odroid*) em->state)->read_delay_us;
 }
 
+uint64_t energymon_get_precision_odroid(const energymon* em) {
+  if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+  // watts to 6 decimal places (microwatts) at refresh interval
+  uint64_t prec = energymon_get_interval_odroid(em) / 1000000;
+  return prec ? prec : 1;
+}
+
+int energymon_is_exclusive_odroid() {
+  return 0;
+}
+
 int energymon_get_odroid(energymon* em) {
   if (em == NULL) {
     errno = EINVAL;
@@ -341,6 +359,8 @@ int energymon_get_odroid(energymon* em) {
   em->ffinish = &energymon_finish_odroid;
   em->fsource = &energymon_get_source_odroid;
   em->finterval = &energymon_get_interval_odroid;
+  em->fprecision = &energymon_get_precision_odroid;
+  em->fexclusive = &energymon_is_exclusive_odroid;
   em->state = NULL;
   return 0;
 }

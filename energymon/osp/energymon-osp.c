@@ -44,10 +44,8 @@ int energymon_get_default(energymon* em) {
 #define OSP_REQUEST_STARTSTOP   0x80
 #define OSP_REQUEST_STATUS      0x81
 
-// how long to sleep for (in microseconds) after certain operations
-#ifndef ENERGYMON_OSP_SLEEP_TIME_US
-  #define ENERGYMON_OSP_SLEEP_TIME_US 200000
-#endif
+// the maximum watt-hour count the device stores internally
+#define OSP_WATTHOUR_MAX 1000.0
 
 // sensor polling interval in microseconds
 #ifndef ENERGYMON_OSP_POLL_DELAY_US
@@ -69,6 +67,9 @@ typedef struct energymon_osp {
   uint64_t total_uj;
   pthread_t thread;
   int poll_sensors;
+#else
+  unsigned int n_overflow;
+  double wh_last;
 #endif
 } energymon_osp;
 
@@ -121,9 +122,12 @@ static int energymon_finish_osp_local(energymon* em) {
   energymon_osp* state = (energymon_osp*) em->state;
 
 #ifdef ENERGYMON_OSP_USE_POLLING
-  // stop sensors polling thread and cleanup
-  state->poll_sensors = 0;
-  err_save = pthread_join(state->thread, NULL);
+  if (state->poll_sensors) {
+    // stop sensors polling thread and cleanup
+    state->poll_sensors = 0;
+    pthread_cancel(state->thread);
+    err_save = pthread_join(state->thread, NULL);
+  }
 #endif
 #ifdef ENERGYMON_OSP_STOP_ON_FINISH
   if (em_osp_request_startstop(state)) {
@@ -158,7 +162,7 @@ static void* osp_poll_device(void* args) {
   int64_t exec_us = 0;
   int err_save;
   struct timespec ts;
-  if (clock_gettime(CLOCK_MONOTONIC, &ts)) {
+  if (energymon_clock_gettime(&ts)) {
     // must be that CLOCK_MONOTONIC is not supported
     perror("osp_poll_device");
     return (void*) NULL;
@@ -176,7 +180,7 @@ static void* osp_poll_device(void* args) {
       errno = EIO;
     }
     err_save = errno;
-    exec_us = energymon_gettime_us(CLOCK_MONOTONIC, &ts);
+    exec_us = energymon_gettime_us(&ts);
     errno = err_save;
     if (errno) {
       perror("osp_poll_device: Did not get data");
@@ -206,7 +210,7 @@ int energymon_init_osp(energymon* em) {
     return -1;
   }
 
-  energymon_osp* state = malloc(sizeof(energymon_osp));
+  energymon_osp* state = calloc(1, sizeof(energymon_osp));
   if (state == NULL) {
     return -1;
   }
@@ -258,12 +262,8 @@ int energymon_init_osp(energymon* em) {
     return -1;
   }
 
-  // let meter reset
-  usleep(ENERGYMON_OSP_SLEEP_TIME_US);
-
 #ifdef ENERGYMON_OSP_USE_POLLING
   // start device polling thread
-  state->total_uj = 0;
   state->poll_sensors = 1;
   errno = pthread_create(&state->thread, NULL, osp_poll_device, state);
   if (errno) {
@@ -288,13 +288,19 @@ uint64_t energymon_read_total_osp(const energymon* em) {
 #ifdef ENERGYMON_OSP_USE_POLLING
   return state->total_uj;
 #else
-  char wh[7] = {'\0'};
+  char wh[8] = {'\0'};
+  double wh_d;
   if (em_osp_request_data_retry(state, ENERGYMON_OSP_RETRIES)) {
     perror("energymon_read_total_osp: Data request failed");
     return 0;
   }
-  strncpy(wh, (char*) &state->buf[26], 5);
-  return atof(wh) * UJOULES_PER_WATTHOUR;
+  strncpy(wh, (char*) &state->buf[24], 7);
+  wh_d = atof(wh);
+  if (wh_d < state->wh_last) {
+    state->n_overflow++;
+  }
+  state->wh_last = wh_d;
+  return (wh_d + state->n_overflow * OSP_WATTHOUR_MAX) * UJOULES_PER_WATTHOUR;
 #endif
 }
 
@@ -329,6 +335,32 @@ uint64_t energymon_get_interval_osp(const energymon* em) {
 }
 
 #ifdef ENERGYMON_OSP_USE_POLLING
+uint64_t energymon_get_precision_osp_polling(const energymon* em) {
+#else
+uint64_t energymon_get_precision_osp(const energymon* em) {
+#endif
+  if (em == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+#ifdef ENERGYMON_OSP_USE_POLLING
+  // watts to 3 decimal places (milliwatts) at refresh interval
+  return ENERGYMON_OSP_POLL_DELAY_US / 1000;
+#else
+  // watt-hours to 3 decimal places (milliwatt-hours)
+  return UJOULES_PER_WATTHOUR / 1000;
+#endif
+}
+
+#ifdef ENERGYMON_OSP_USE_POLLING
+int energymon_is_exclusive_osp_polling() {
+#else
+int energymon_is_exclusive_osp() {
+#endif
+  return 1;
+}
+
+#ifdef ENERGYMON_OSP_USE_POLLING
 int energymon_get_osp_polling(energymon* em) {
 #else
 int energymon_get_osp(energymon* em) {
@@ -343,12 +375,16 @@ int energymon_get_osp(energymon* em) {
   em->ffinish = &energymon_finish_osp_polling;
   em->fsource = &energymon_get_source_osp_polling;
   em->finterval = &energymon_get_interval_osp_polling;
+  em->fprecision = &energymon_get_precision_osp_polling;
+  em->fexclusive = &energymon_is_exclusive_osp_polling;
 #else
   em->finit = &energymon_init_osp;
   em->fread = &energymon_read_total_osp;
   em->ffinish = &energymon_finish_osp;
   em->fsource = &energymon_get_source_osp;
   em->finterval = &energymon_get_interval_osp;
+  em->fprecision = &energymon_get_precision_osp;
+  em->fexclusive = &energymon_is_exclusive_osp;
 #endif
   em->state = NULL;
   return 0;
