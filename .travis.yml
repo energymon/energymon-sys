@@ -1,8 +1,9 @@
 # TODO: Disabled ODROID Smart Power implementations until we figure out how build them cleanly
+# TODO: Custom scripting for OSX build support (not all projects build on OSX)
 
 os:
   - linux
-  - osx
+  # - osx
 
 addons:
   apt:
