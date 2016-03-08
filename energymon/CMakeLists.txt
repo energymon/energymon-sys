@@ -67,7 +67,10 @@ endmacro(PKG_CONFIG)
 set(DEFAULT "dummy" CACHE STRING "Default EnergyMon implementation")
 
 add_subdirectory(dummy)
-add_subdirectory(shmem)
+
+if(UNIX)
+  add_subdirectory(shmem)
+endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
   add_subdirectory(msr)
@@ -79,14 +82,25 @@ endif()
 
 # Binaries
 
-add_executable(energymon src/app/energymon.c)
-target_link_libraries(energymon energymon-default)
 
-add_executable(energymon-idle-power src/app/energymon-idle-power.c;src/energymon-time-util.c)
-target_link_libraries(energymon-idle-power energymon-default ${LIBRT})
+add_executable(energymon-info src/app/energymon-info.c)
+target_link_libraries(energymon-info energymon-default)
 
-add_executable(energymon-overhead src/app/energymon-overhead.c;src/energymon-time-util.c)
-target_link_libraries(energymon-overhead energymon-default ${LIBRT})
+if(UNIX)
+  add_executable(energymon-cmd-profile src/app/energymon-cmd-profile.c;src/energymon-time-util.c)
+  target_link_libraries(energymon-cmd-profile energymon-default ${LIBRT})
+
+  add_executable(energymon-file-provider src/app/energymon-file-provider.c;src/energymon-time-util.c)
+  target_link_libraries(energymon-file-provider energymon-default ${LIBRT})
+
+  add_executable(energymon-idle-power src/app/energymon-idle-power.c;src/energymon-time-util.c)
+  target_link_libraries(energymon-idle-power energymon-default ${LIBRT})
+
+  add_executable(energymon-overhead src/app/energymon-overhead.c;src/energymon-time-util.c)
+  target_link_libraries(energymon-overhead energymon-default ${LIBRT})
+
+  install(TARGETS energymon-cmd-profile energymon-file-provider energymon-idle-power energymon-overhead DESTINATION bin)
+endif()
 
 # Tests
 
@@ -98,8 +112,8 @@ target_link_libraries(interval-test energymon-default)
 
 # Install
 
+install(TARGETS energymon-info DESTINATION bin)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/inc/ DESTINATION include/${PROJECT_NAME})
-install(TARGETS energymon energymon-idle-power energymon-overhead DESTINATION bin)
 
 # Uninstall
 
