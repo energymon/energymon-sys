@@ -1,4 +1,5 @@
 extern crate pkg_config;
+extern crate cmake;
 
 use std::env;
 use std::fs::{self};
@@ -14,36 +15,24 @@ pub fn find_or_build(lib: &str) -> Result<(), String> {
             // get source and build directories
             let src = PathBuf::from(&env::var_os("CARGO_MANIFEST_DIR").unwrap())
                                    .parent().unwrap().join("energymon");
-            let build = PathBuf::from(&env::var_os("OUT_DIR").unwrap()).join("_build");
-            // get extra CMake parameters
-            let default_impl = match env::var_os("ENERGYMON_DEFAULT_IMPL") {
-                Some(d) => format!("-DDEFAULT={}", d.to_str().unwrap()),
-                None => "".to_owned(),
-            };
-            let target: String = env::var("TARGET").unwrap();
-            let target_parts: Vec<&str> = target.split('-').collect();
-            let cmake_toolchain = match target_parts[target_parts.len() - 1].starts_with("android") {
-                true => format!("-DCMAKE_TOOLCHAIN_FILE={}",
-                                src.join("cmake-toolchain").join("android.toolchain.cmake").display()),
-                false => "".to_owned(),
-            };
-            let cmake_mingw = match env::var("MSYSTEM") {
-                Ok(val) => {
-                    if val.contains("MINGW") {
-                        "-GMSYS Makefiles".to_owned()
-                    } else {
-                        "".to_owned()
-                    }
-                },
-                Err(_) => "".to_owned(),
-            };
+            let build = PathBuf::from(&env::var_os("OUT_DIR").unwrap()).join("build");
+            let mut cmake_config = cmake::Config::new(&src);
             // always remake the build directory
             fs::remove_dir_all(&build).ok();
             fs::create_dir_all(&build).unwrap();
+            // set CMake parameters
+            cmake_config.build_target(&lib);
+            cmake_config.define("BUILD_SHARED_LIBS", "false");
+            if let Some(default_impl) = env::var_os("ENERGYMON_DEFAULT_IMPL") {
+                cmake_config.define("DEFAULT", default_impl.to_str().unwrap());
+            }
+            if let Ok(msystem) = env::var("MSYSTEM") {
+                if msystem.contains("MINGW") {
+                    cmake_config.generator("MSYS Makefiles");
+                }
+            }
             // run the build commands
-            run(Command::new("cmake").arg(default_impl).arg("-DBUILD_SHARED_LIBS=false").arg(cmake_toolchain)
-                .arg(&cmake_mingw).arg(src.to_str().unwrap()).current_dir(&build));
-            run(Command::new("make").arg(lib).current_dir(&build));
+            cmake_config.build();
             // run pkg-config on compiled dir to get any transitive dependencies of static lib
             set_pkg_config_path(build);
             // this might be a cross-compile, so we need to force the search
