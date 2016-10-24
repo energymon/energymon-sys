@@ -21,7 +21,6 @@ pub fn find_or_build(lib: &str) -> Result<(), String> {
             fs::create_dir_all(&build).unwrap();
             // set CMake parameters
             cmake_config.build_target(&lib);
-            cmake_config.define("BUILD_SHARED_LIBS", "false");
             if let Some(default_impl) = env::var_os("ENERGYMON_DEFAULT_IMPL") {
                 cmake_config.define("DEFAULT", default_impl.to_str().unwrap());
             }
