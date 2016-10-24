@@ -4,7 +4,6 @@ extern crate cmake;
 use std::env;
 use std::fs::{self};
 use std::path::PathBuf;
-use std::process::Command;
 
 pub fn find_or_build(lib: &str) -> Result<(), String> {
     // force behavior for static libraries (risks over-linking, but better than missing transitive dependencies)
@@ -52,11 +51,4 @@ fn set_pkg_config_path(build: PathBuf) {
         None => build.into_os_string(),
     };
     env::set_var("PKG_CONFIG_PATH", &var);
-}
-
-fn run(cmd: &mut Command) {
-    match cmd.status() {
-        Ok(status) => assert!(status.success()),
-        Err(e) => panic!("Unable to execute {:?}! {}", cmd, e),
-    }
 }
