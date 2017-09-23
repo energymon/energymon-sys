@@ -6,6 +6,13 @@ The crates in this repository provide declarations and linkage for the
 The latest `EnergyMon` C libraries can be found at
 [https://github.com/energymon/energymon](https://github.com/energymon/energymon).
 
+## Project Source
+
+Find this and related project sources at the [energymon organization on GitHub](https://github.com/energymon).  
+This project originates at: https://github.com/energymon/energymon-sys
+
+Bug reports and pull requests for new implementations, bug fixes, and enhancements are welcome.
+
 ## License
 
 Licensed under either of
