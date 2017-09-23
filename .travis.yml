@@ -5,18 +5,15 @@ os:
   - linux
   # - osx
 
-addons:
-  apt:
-    sources:
-      - kubuntu-backports
-    packages:
-      - cmake
-      # - libudev-dev
-      # - libusb-1.0-0-dev
-      # - autotools-dev
-      # - autoconf
-      # - automake
-      # - libtool
+# addons:
+#   apt:
+#     packages:
+#       - libudev-dev
+#       - libusb-1.0-0-dev
+#       - autotools-dev
+#       - autoconf
+#       - automake
+#       - libtool
 
 # before_install:
 #   - wget https://github.com/signal11/hidapi/archive/master.zip -O /tmp/hidapi.zip
