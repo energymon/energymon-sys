@@ -5,6 +5,7 @@
  * @author Connor Imes
  * @date 2016-02-18
  */
+#define _GNU_SOURCE
 #include <errno.h>
 #include <inttypes.h>
 #include <signal.h>
@@ -24,7 +25,7 @@ static const char* key_dir = NULL;
 static int key_proj_id = -1;
 static int shm_id;
 
-static inline void print_usage(const char* name, int exit_code) {
+static void print_usage(const char* name, int exit_code) {
   printf("Usage: %s [OPTIONS]\n", name);
   printf("  -d --dir      The shared memory directory\n");
   printf("                default = \"%s\"\n", ENERGYMON_SHMEM_DIR_DEFAULT);
@@ -35,7 +36,7 @@ static inline void print_usage(const char* name, int exit_code) {
   exit(exit_code);
 }
 
-static inline void parse_args(int argc, char** argv) {
+static void parse_args(int argc, char** argv) {
   int i;
   const char* key_proj_id_env;
   for (i = 1; i < argc; i++) {
@@ -74,7 +75,7 @@ static inline void parse_args(int argc, char** argv) {
   }
 }
 
-void shandle(int sig) {
+static void shandle(int sig) {
   switch (sig) {
     case SIGTERM:
     case SIGINT:
@@ -93,7 +94,7 @@ void shandle(int sig) {
   }
 }
 
-int cleanup_shmem() {
+static int cleanup_shmem(void) {
   // detach shared memory
   if (shmdt(ems)) {
     perror("shmdt");

@@ -5,6 +5,7 @@
  * @author Connor Imes
  * @date 2016-08-30
  */
+#define _GNU_SOURCE
 #include <errno.h>
 #include <float.h>
 #include <getopt.h>
@@ -14,10 +15,10 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include "energymon-default.h"
 #include "energymon-time-util.h"
 
+static const int IGNORE_INTERRUPT = 0;
 
 static volatile uint64_t running = 1;
 static int count = 0;
@@ -31,8 +32,9 @@ static const struct option long_options[] = {
   {"count",     required_argument, NULL, 'c'},
   {"file",      required_argument, NULL, 'f'},
   {"interval",  required_argument, NULL, 'i'},
-  {"summarize", required_argument, NULL, 's'},
-  {"help",      required_argument, NULL, 'h'},
+  {"summarize", no_argument,       NULL, 's'},
+  {"help",      no_argument,       NULL, 'h'},
+  {0, 0, 0, 0}
 };
 
 static void print_usage(int exit_code) {
@@ -90,7 +92,7 @@ static void parse_args(int argc, char** argv) {
   }
 }
 
-void shandle(int sig) {
+static void shandle(int sig) {
   switch (sig) {
     case SIGTERM:
     case SIGINT:
@@ -155,7 +157,7 @@ int main(int argc, char** argv) {
 
   // output at regular intervals
   energy_last = em.fread(&em);
-  energymon_sleep_us(interval);
+  energymon_sleep_us(interval, &IGNORE_INTERRUPT);
   while (running) {
     if (count) {
       running--;
@@ -184,7 +186,7 @@ int main(int argc, char** argv) {
       pavg = pavg + ((power - pavg) / n);
     }
     pstd = pstd + (power - pavg) * (power - pavg_last);
-    energymon_sleep_us(interval);
+    energymon_sleep_us(interval, &IGNORE_INTERRUPT);
   }
 
   if (summarize) {

@@ -10,6 +10,7 @@
  * @author Hank Hoffmann
  */
 
+#define _POSIX_C_SOURCE 200809L
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -30,43 +31,17 @@ int energymon_get_default(energymon* em) {
 
 #define MSR_RAPL_POWER_UNIT		0x606
 
-/*
- * Platform specific RAPL Domains.
- * Note that PP1 RAPL Domain is supported on 062A only
- * And DRAM RAPL Domain is supported on 062D only
- */
 /* Package RAPL Domain */
-#define MSR_PKG_RAPL_POWER_LIMIT	0x610
 #define MSR_PKG_ENERGY_STATUS		0x611
-#define MSR_PKG_PERF_STATUS		0x613
-#define MSR_PKG_POWER_INFO		0x614
 
 /* PP0 RAPL Domain */
-#define MSR_PP0_POWER_LIMIT		0x638
 #define MSR_PP0_ENERGY_STATUS		0x639
-#define MSR_PP0_POLICY			0x63A
-#define MSR_PP0_PERF_STATUS		0x63B
 
 /* PP1 RAPL Domain, may reflect to uncore devices */
-#define MSR_PP1_POWER_LIMIT		0x640
 #define MSR_PP1_ENERGY_STATUS		0x641
-#define MSR_PP1_POLICY			0x642
 
 /* DRAM RAPL Domain */
-#define MSR_DRAM_POWER_LIMIT		0x618
 #define MSR_DRAM_ENERGY_STATUS		0x619
-#define MSR_DRAM_PERF_STATUS		0x61B
-#define MSR_DRAM_POWER_INFO		0x61C
-
-/* RAPL UNIT BITMASK */
-#define POWER_UNIT_OFFSET	0
-#define POWER_UNIT_MASK		0x0F
-
-#define ENERGY_UNIT_OFFSET	0x08
-#define ENERGY_UNIT_MASK	0x1F00
-
-#define TIME_UNIT_OFFSET	0x10
-#define TIME_UNIT_MASK		0xF000
 
 typedef struct msr_info {
   int fd;
@@ -101,20 +76,28 @@ static inline int msr_info_init(msr_info* m, unsigned int n, char* env_cores) {
   uint64_t msr_val;
   unsigned int i;
   unsigned int energy_status_units;
-  char filename[24];
+  char filename[32];
   char* saveptr;
-  char* tok = env_cores == NULL ? "0" :
+  const char* tok = env_cores == NULL ? "0" :
     strtok_r(env_cores, ENERGYMON_MSRS_DELIMS, &saveptr);
-  errno = 0;
-  for (i = 0; tok && i < n && !errno; i++) {
+  for (i = 0; tok && i < n; i++) {
     m[i].n_overflow = 0;
     m[i].energy_last = 0;
-    snprintf(filename, sizeof(filename), "/dev/cpu/%s/msr", tok);
-    if ((m[i].fd = open(filename, O_RDONLY)) <= 0 ||
-        pread(m[i].fd, &msr_val, sizeof(msr_val), MSR_RAPL_POWER_UNIT) < 0) {
+    // first try msr_safe file
+    snprintf(filename, sizeof(filename), "/dev/cpu/%s/msr_safe", tok);
+    if ((m[i].fd = open(filename, O_RDONLY)) <= 0) {
+      // fall back on regular msr file
+      snprintf(filename, sizeof(filename), "/dev/cpu/%s/msr", tok);
+      if ((m[i].fd = open(filename, O_RDONLY)) <= 0) {
+        perror(filename);
+        return errno;
+      }
+    }
+    if (pread(m[i].fd, &msr_val, sizeof(msr_val), MSR_RAPL_POWER_UNIT) < 0) {
       perror(filename);
       return errno;
     }
+
     // Energy related information (in Joules) is based on the multiplier,
     // 1/2^ESU; where ESU is an unsigned integer represented by bits 12:8.
     energy_status_units = ((msr_val >> 8) & 0x1f);
@@ -157,6 +140,7 @@ int energymon_init_msr(energymon* em) {
   size_t size = sizeof(energymon_msr) + ncores * sizeof(msr_info);
   energymon_msr* state = calloc(1, size);
   if (state == NULL) {
+    free(tmp);
     return -1;
   }
   state->msr_count = ncores;
@@ -187,12 +171,14 @@ uint64_t energymon_read_total_msr(const energymon* em) {
   for (errno = 0, i = 0; i < state->msr_count && !errno; i++) {
     if (pread(state->msrs[i].fd, &msr_val, sizeof(uint64_t),
               MSR_PKG_ENERGY_STATUS) == sizeof(uint64_t)) {
+      // bits 31:0 hold the energy consumption counter, ignore upper 32 bits
+      msr_val &= 0xFFFFFFFF;
       // overflows at 32 bits
       if (msr_val < state->msrs[i].energy_last) {
         state->msrs[i].n_overflow++;
       }
       state->msrs[i].energy_last = msr_val;
-      total += (msr_val + state->msrs[i].n_overflow * UINT32_MAX)
+      total += (msr_val + state->msrs[i].n_overflow * (uint64_t) UINT32_MAX)
                * state->msrs[i].energy_units * 1000000;
     }
   }
@@ -254,7 +240,7 @@ uint64_t energymon_get_precision_msr(const energymon* em) {
   return prec ? prec : 1;
 }
 
-int energymon_is_exclusive_msr() {
+int energymon_is_exclusive_msr(void) {
   return 0;
 }
 

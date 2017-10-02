@@ -4,15 +4,15 @@
  * @author Connor Imes
  * @date 2016-02-15
  */
+#define _GNU_SOURCE
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <time.h>
 #include "energymon-default.h"
 #include "energymon-time-util.h"
 
 static const int DEFAULT_SLEEP_US = 10000000; // 10 seconds
+static const int IGNORE_INTERRUPT = 0;
 
 /**
  * The only argument allowed is an integer value for the number of seconds to
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
   time_start_ns = energymon_gettime_ns();
-  if (energymon_sleep_us(sleep_us)) {
+  if (energymon_sleep_us(sleep_us, &IGNORE_INTERRUPT)) {
     perror("energymon_sleep_us");
     em.ffinish(&em);
     exit(1);

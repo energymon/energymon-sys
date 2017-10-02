@@ -5,13 +5,13 @@
  * @author Connor Imes
  * @date 2015-07-09
  */
+#define _GNU_SOURCE
 #include <errno.h>
 #include <inttypes.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include "energymon-default.h"
 #include "energymon-time-util.h"
 
@@ -27,7 +27,7 @@ static void print_usage(const char* app) {
   fprintf(stderr, "  %s <output_file>\n", app);
 }
 
-void shandle(int sig) {
+static void shandle(int sig) {
   switch (sig) {
     case SIGTERM:
     case SIGINT:
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
       break;
     }
     fflush(fout);
-    energymon_sleep_us(us);
+    energymon_sleep_us(us, &running);
   }
 
   // cleanup

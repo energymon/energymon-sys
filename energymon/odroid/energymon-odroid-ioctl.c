@@ -154,15 +154,15 @@ static void* odroid_ioctl_poll_sensors(void* args) {
   energymon_odroid_ioctl* state = (energymon_odroid_ioctl*) args;
   uint64_t sum_uw;
   unsigned int i;
-  int64_t exec_us;
+  uint64_t exec_us;
+  uint64_t last_us;
   int err_save;
-  struct timespec ts;
-  if (energymon_clock_gettime(&ts)) {
+  if (!(last_us = energymon_gettime_us())) {
     // must be that CLOCK_MONOTONIC is not supported
     perror("odroid_ioctl_poll_sensors");
     return (void*) NULL;
   }
-  energymon_sleep_us(state->poll_delay_us);
+  energymon_sleep_us(state->poll_delay_us, &state->poll_sensors);
   while (state->poll_sensors) {
     // read individual sensors
     for (errno = 0, sum_uw = 0, i = 0; i < SENSOR_COUNT && !errno; i++) {
@@ -171,7 +171,7 @@ static void* odroid_ioctl_poll_sensors(void* args) {
       }
     }
     err_save = errno;
-    exec_us = energymon_gettime_us(&ts);
+    exec_us = energymon_gettime_elapsed_us(&last_us);
     if (err_save) {
       errno = err_save;
       perror("odroid_ioctl_poll_sensors: skipping power sensor reading");
@@ -179,7 +179,9 @@ static void* odroid_ioctl_poll_sensors(void* args) {
       state->total_uj += sum_uw * exec_us / 1000000;
     }
     // sleep for the update interval of the sensors (minus most overhead)
-    energymon_sleep_us(2 * state->poll_delay_us - exec_us);
+    if (state->poll_delay_us > exec_us) {
+      energymon_sleep_us(state->poll_delay_us - exec_us, &state->poll_sensors);
+    }
     errno = 0;
   }
   return (void*) NULL;
@@ -256,7 +258,7 @@ uint64_t energymon_get_precision_odroid_ioctl(const energymon* em) {
   return prec ? prec : 1;
 }
 
-int energymon_is_exclusive_odroid_ioctl() {
+int energymon_is_exclusive_odroid_ioctl(void) {
   return 0;
 }
 

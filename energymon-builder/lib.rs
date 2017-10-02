@@ -20,19 +20,33 @@ pub fn find_or_build(lib: &str) -> Result<(), String> {
             fs::remove_dir_all(&build).ok();
             fs::create_dir_all(&build).unwrap();
             // set CMake parameters
-            cmake_config.build_target(&lib);
-            if let Some(default_impl) = env::var_os("ENERGYMON_DEFAULT_IMPL") {
-                cmake_config.define("DEFAULT", default_impl.to_str().unwrap());
-            }
+            cmake_config.define("ENERGYMON_BUILD_LIB", &lib);
+            cmake_config.define("ENERGYMON_BUILD_SHMEM_PROVIDERS", "False");
+            cmake_config.define("ENERGYMON_BUILD_UTILITIES", "False");
+            cmake_config.define("ENERGYMON_BUILD_TESTS", "False");
+            cmake_config.define("ENERGYMON_BUILD_EXAMPLES", "False");
+            // handle default impl
+            match lib {
+                "default" | "energymon-default" => {
+                    match env::var_os("ENERGYMON_DEFAULT_IMPL") {
+                        // build requested default impl
+                        Some(d) => cmake_config.define("ENERGYMON_BUILD_DEFAULT", d),
+                        // default to dummy impl
+                        None => cmake_config.define("ENERGYMON_BUILD_DEFAULT", "energymon-dummy")
+                    }
+                },
+                // don't build default impl
+                _ => cmake_config.define("ENERGYMON_BUILD_DEFAULT", "NONE")
+            };
             if let Ok(msystem) = env::var("MSYSTEM") {
                 if msystem.contains("MINGW") {
                     cmake_config.generator("MSYS Makefiles");
                 }
             }
             // run the build commands
-            cmake_config.build();
+            let install_path = cmake_config.build();
             // run pkg-config on compiled dir to get any transitive dependencies of static lib
-            set_pkg_config_path(build);
+            set_pkg_config_path(install_path.join("lib").join("pkgconfig"));
             // this might be a cross-compile, so we need to force the search
             env::set_var("PKG_CONFIG_ALLOW_CROSS", "1");
             pkg_config::find_library(lib).map(|_| ())

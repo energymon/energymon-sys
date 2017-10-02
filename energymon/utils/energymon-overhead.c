@@ -5,6 +5,7 @@
  * @author Connor Imes
  * @date 2016-02-15
  */
+#define _GNU_SOURCE
 #include <errno.h>
 #include <inttypes.h>
 #include <stdlib.h>
@@ -15,7 +16,7 @@
 int main(void) {
   static energymon em;
   uint64_t time_start_ns, time_end_ns;
-  unsigned long long finit_ns, fread_ns, ffinish_ns;
+  uint64_t finit_ns, fread_ns, ffinish_ns;
   uint64_t energy_uj;
   int ret;
   char source[64];
@@ -63,7 +64,7 @@ int main(void) {
     exit(1);
   }
 
-  fprintf(stdout, "%s\nfinit: %llu\nfread: %llu\nffinish: %llu\n",
+  fprintf(stdout, "%s\nfinit: %"PRIu64"\nfread: %"PRIu64"\nffinish: %"PRIu64"\n",
                   source, finit_ns, fread_ns, ffinish_ns);
 
   return 0;
